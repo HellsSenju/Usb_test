@@ -95,7 +95,6 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-
         mConnection.claimInterface (mUsbInterface, true);
 
         byte[] bytes = { 0 };
