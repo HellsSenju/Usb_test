@@ -94,6 +94,8 @@ public class MainActivity extends AppCompatActivity {
             Log.w(TAG, "mConnection is null");
             return;
         }
+
+
         mConnection.claimInterface (mUsbInterface, true);
 
         byte[] bytes = { 0 };
