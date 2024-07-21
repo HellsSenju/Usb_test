@@ -1,0 +1,119 @@
+UsbDevice
+[
+    mName=/dev/bus/usb/001/003,
+    mVendorId=7119,
+    mProductId=8835,
+    mClass=239,
+    mSubclass=2,
+    mProtocol=1,
+    mManufacturerName=SunplusIT Inc,
+    mProductName=Full HD webcam,
+    mVersion=3.23,
+    mSerialNumberReader=android.hardware.usb.IUsbSerialReader$Stub$Proxy@bb8eb1a, 
+    mHasAudioPlayback=false, 
+    mHasAudioCapture=true, 
+    mHasMidi=false, 
+    mHasVideoCapture=true, 
+    mHasVideoPlayback=true, 
+    mConfigurations=
+    [
+                                                                                                        
+        UsbConfiguration
+        [
+            mId=1,
+            mName=null,	
+            mAttributes=128,
+            mMaxPower=250,
+            mInterfaces=
+            [
+                                                                                                        
+                UsbInterface
+                [	
+                    mId=0,
+                    mAlternateSetting=0,
+                    mName=Full HD webcam,
+                    mClass=14,
+                    mSubclass=1,
+                    mProtocol=0,
+                    mEndpoints=
+                    [                                                          
+                        UsbEndpoint
+                        [
+                            mAddress=135,
+                            mAttributes=3,
+                            mMaxPacketSize=16,
+                            mInterval=8
+                        ]
+                    ]	
+
+
+                
+                UsbInterface
+                [
+                    mId=1,
+                    mAlternateSetting=0,
+                    mName=null,
+                    mClass=14,
+                    mSubclass=2,
+                    mProtocol=0,
+                    mEndpoints=[]
+                
+                UsbInterface
+                [
+                    mId=1,
+                    mAlternateSetting=1,
+                    mName=null,
+                    mClass=14,
+                    mSubclass=2,
+                    mProtocol=0,
+                    mEndpoints=
+                    [
+                        UsbEndpoint
+                        [
+                            mAddress=129,
+                            mAttributes=5,
+                            mMaxPacketSize=192,
+                            mInterval=1
+                        ]
+                    ]
+
+                UsbInterface[mId=1,mAlternateSetting=2,mName=null,mClass=14,mSubclass=2,mProtocol=0,mEndpoints=[
+                UsbEndpoint[mAddress=129,mAttributes=5,mMaxPacketSize=384,mInterval=1]]
+                UsbInterface[mId=1,mAlternateSetting=3,mName=null,mClass=14,mSubclass=2,mProtocol=0,mEndpoints=[
+                UsbEndpoint[mAddress=129,mAttributes=5,mMaxPacketSize=512,mInterval=1]]
+                UsbInterface[mId=1,mAlternateSetting=4,mName=null,mClass=14,mSubclass=2,mProtocol=0,mEndpoints=[
+                UsbEndpoint[mAddress=129,mAttributes=5,mMaxPacketSize=640,mInterval=1]]
+                UsbInterface[mId=1,mAlternateSetting=5,mName=null,mClass=14,mSubclass=2,mProtocol=0,mEndpoints=[
+                UsbEndpoint[mAddress=129,mAttributes=5,mMaxPacketSize=800,mInterval=1]]
+                UsbInterface[mId=1,mAlternateSetting=6,mName=null,mClass=14,mSubclass=2,mProtocol=0,mEndpoints=[
+                UsbEndpoint[mAddress=129,mAttributes=5,mMaxPacketSize=944,mInterval=1]]
+                UsbInterface[mId=1,mAlternateSetting=7,mName=null,mClass=14,mSubclass=2,mProtocol=0,mEndpoints=[
+                UsbEndpoint[mAddress=129,mAttributes=5,mMaxPacketSize=2688,mInterval=1]]
+                UsbInterface[mId=1,mAlternateSetting=8,mName=null,mClass=14,mSubclass=2,mProtocol=0,mEndpoints=[
+                UsbEndpoint[mAddress=129,mAttributes=5,mMaxPacketSize=2848,mInterval=1]]
+                UsbInterface[mId=1,mAlternateSetting=9,mName=null,mClass=14,mSubclass=2,mProtocol=0,mEndpoints=[
+                UsbEndpoint[mAddress=129,mAttributes=5,mMaxPacketSize=3040,mInterval=1]]
+                UsbInterface[mId=1,mAlternateSetting=10,mName=null,mClass=14,mSubclass=2,mProtocol=0,mEndpoints=[
+                UsbEndpoint[mAddress=129,mAttributes=5,mMaxPacketSize=5056,mInterval=1]]
+                UsbInterface[mId=1,mAlternateSetting=11,mName=null,mClass=14,mSubclass=2,mProtocol=0,mEndpoints=[
+                UsbEndpoint[mAddress=129,mAttributes=5,mMaxPacketSize=5116,mInterval=1]]
+                
+                UsbInterface
+                [
+                    mId=2,
+                    mAlternateSetting=0,
+                    mName=USB microphone,
+                    mClass=1,
+                    mSubclass=1,
+                    mProtocol=0,
+                    mEndpoints=[]
+                
+                UsbInterface[mId=3,mAlternateSetting=0,mName=null,mClass=1,mSubclass=2,mProtocol=0,mEndpoints=[]
+                UsbInterface[mId=3,mAlternateSetting=1,mName=null,mClass=1,mSubclass=2,mProtocol=0,mEndpoints=[
+                UsbEndpoint[mAddress=134,mAttributes=5,mMaxPacketSize=20,mInterval=4]]
+                UsbInterface[mId=3,mAlternateSetting=2,mName=null,mClass=1,mSubclass=2,mProtocol=0,mEndpoints=[
+                UsbEndpoint[mAddress=134,mAttributes=5,mMaxPacketSize=36,mInterval=4]]
+                UsbInterface[mId=3,mAlternateSetting=3,mName=null,mClass=1,mSubclass=2,mProtocol=0,mEndpoints=[
+                UsbEndpoint[mAddress=134,mAttributes=5,mMaxPacketSize=92,mInterval=4]]
+                UsbInterface[mId=3,mAlternateSetting=4,mName=null,mClass=1,mSubclass=2,mProtocol=0,mEndpoints=[
+                UsbEndpoint[mAddress=134,mAttributes=5,mMaxPacketSize=100,mInterval=4]]]]
