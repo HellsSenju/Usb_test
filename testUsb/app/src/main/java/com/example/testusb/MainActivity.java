@@ -1,85 +1,229 @@
 package com.example.testusb;
 
+import android.Manifest;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
+import android.hardware.usb.UsbRequest;
 import android.os.Bundle;
-import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.felhr.usbserial.UsbSerialDevice;
+import com.felhr.usbserial.UsbSerialInterface;
+import com.hoho.android.usbserial.driver.FtdiSerialDriver;
+import com.hoho.android.usbserial.driver.ProbeTable;
+import com.hoho.android.usbserial.driver.UsbSerialDriver;
+import com.hoho.android.usbserial.driver.UsbSerialPort;
+import com.hoho.android.usbserial.driver.UsbSerialProber;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
 
 
 public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = "!!!";
 
-    private UsbManager mUsbManager;
+    private static final String ACTION_USB_PERMISSION =
+            "com.android.example.USB_PERMISSION";
+
+    private static final int MY_CAMERA_REQUEST_CODE = 100;
+
+    public int REPORT_SIZE = 0;
+
+    private UsbManager manager;
+
+    private UsbAccessory accessory;
+    
+    private UsbDevice device;
+
+    private UsbSerialDevice serialPort;
+    
+    private UsbInterface usbIntr;
+    
+    private UsbEndpoint inEndpoint; //device to host
+    
+    private UsbDeviceConnection connection;
+    
+    private UsbRequest request = null;
 
     private HashMap<String, UsbDevice> devices;
 
-    Handler handler = new Handler();
+    PendingIntent permissionIntent;
+
+    Handler handler;
+
+    UsbSerialInterface.UsbReadCallback mCallback = new UsbSerialInterface.UsbReadCallback() { //Defining a Callback which triggers whenever data is read.
+        @Override
+        public void onReceivedData(byte[] arg0) {
+            String data = null;
+            try {
+                data = new String(arg0, "UTF-8");
+                data.concat("/n");
+                Log.d(TAG, data);
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+
+    private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
+
+        public void onReceive(Context context, Intent intent) {
+            if(manager.hasPermission(device)){
+                Log.d(TAG, "Права уже есть");
+            }
+            else if(ACTION_USB_PERMISSION.equals(intent.getAction())){
+                boolean granted =
+                        Objects.requireNonNull(intent.getExtras()).getBoolean(UsbManager.EXTRA_PERMISSION_GRANTED);
+                if (!granted) {
+                    Log.d(TAG, "Права не были получены");
+                    return;
+                }
+            }
+
+            //                serialSetup();
+            setup();
+
+//                try {
+//                    test();
+//                } catch (IOException e) {
+//                    throw new RuntimeException(e);
+//                }
+        }
+    };
+
+    // https://github.com/felHR85/UsbSerial
+    public void serialSetup(){
+        connection = manager.openDevice(device);
+        if(connection == null)
+            Log.d(TAG, "connection is null");
+        serialPort = UsbSerialDevice.createUsbSerialDevice(device, connection);
+        if (serialPort != null) {
+            if (serialPort.open()) { //Set Serial Connection Parameters.
+
+                serialPort.setBaudRate(9600);
+                serialPort.setDataBits(UsbSerialInterface.DATA_BITS_8);
+                serialPort.setStopBits(UsbSerialInterface.STOP_BITS_1);
+                serialPort.setParity(UsbSerialInterface.PARITY_NONE);
+                serialPort.setFlowControl(UsbSerialInterface.FLOW_CONTROL_OFF);
+                serialPort.read(mCallback);
+
+            }
+            else {
+                Log.d(TAG, "PORT NOT OPEN");
+            }
+        }
+        else {
+            Log.d(TAG, "PORT IS NULL");
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-
         Log.i(TAG, "START");
 
-        UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
+        manager = (UsbManager) getSystemService(Context.USB_SERVICE);
+        UsbAccessory[] accessoryList = manager.getAccessoryList();
+        Log.d(TAG, "accessoryList " + Arrays.toString(accessoryList));
+
         devices = manager.getDeviceList();
         Log.d(TAG, "devices " + devices.size());
 
+        permissionIntent = PendingIntent.getBroadcast(this, 0,
+                new Intent(ACTION_USB_PERMISSION), PendingIntent.FLAG_IMMUTABLE);
 
-//        UsbDevice cam1 = deviceList.get("/dev/bus/usb/001/004");
-//        UsbDevice cam2 = deviceList.get("/dev/bus/usb/001/003");
+        IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
 
-        UsbDevice mUsbDevice = findDevice();
-        if(mUsbDevice == null){
-            Log.d(TAG, "mUsbDevice is null");
+        registerReceiver(usbReceiver, filter, Context.RECEIVER_EXPORTED);
+
+        setDevice();
+        if(device == null){
+            Log.w(TAG, "device is null");
             return;
         }
 
-        Log.d(TAG, "interf count " + mUsbDevice.getInterfaceCount());
+        manager.requestPermission(device, permissionIntent);
+    }
 
-        UsbInterface mUsbInterface = findInterface(mUsbDevice);
-        if(mUsbInterface == null) {
+    // https://github.com/mik3y/usb-serial-for-android/tree/master
+    void test() throws IOException {
+        // Find all available drivers from attached devices.
+        UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
+        ProbeTable customTable = new ProbeTable();
+        customTable.addProduct(7119, 8835, FtdiSerialDriver.class);
+
+        UsbSerialProber prober = new UsbSerialProber(customTable);
+
+        List<UsbSerialDriver> availableDrivers = prober.findAllDrivers(manager);
+        if (availableDrivers.isEmpty()) {
+            Log.d(TAG, "availableDrivers is empty ");
+            return;
+        }
+        Log.d(TAG, "availableDrivers: " + availableDrivers);
+
+        // Open a connection to the first available driver.
+        UsbSerialDriver driver = availableDrivers.get(0);
+        UsbDeviceConnection connection = manager.openDevice(driver.getDevice());
+        if (connection == null) {
+            // add UsbManager.requestPermission(driver.getDevice(), ..) handling here
+            return;
+        }
+
+        UsbSerialPort port = driver.getPorts().get(0); // Most devices have just one port (port 0)
+        Log.d(TAG, "ports: " + driver.getPorts());
+
+//        port.read()
+//        port.open(connection);
+//        port.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
+    }
+
+    void setup_test(){
+        setInterface();
+        if(usbIntr == null) {
             Log.w(TAG, "mUsbInterface is null");
             return;
         }
 
-        UsbEndpoint outEndpoint = null;
-        UsbEndpoint inEndpoint = null;
+        inEndpoint = null;
 
         // Получаем endpoint’ы
         // 128 - USB_DIR_IN - device to host
-        for (int nEp = 0; nEp < mUsbInterface.getEndpointCount(); nEp++) {
-            UsbEndpoint tmpEndpoint = mUsbInterface.getEndpoint(nEp);
-            Log.d(TAG, "tmpEndpoint type " + tmpEndpoint.getType());
-            Log.d(TAG, "tmpEndpoint direction " + tmpEndpoint.getDirection());
+        for (int nEp = 0; nEp < usbIntr.getEndpointCount(); nEp++) {
+            UsbEndpoint tmpEndpoint = usbIntr.getEndpoint(nEp);
+//            Log.d(TAG, "tmpEndpoint type " + tmpEndpoint.getType());
+//            Log.d(TAG, "tmpEndpoint direction " + tmpEndpoint.getDirection());
 
 //            if (tmpEndpoint.getType() != UsbConstants.USB_ENDPOINT_XFER_BULK)
 //                continue;
 
-            if ((outEndpoint == null)
-                    && (tmpEndpoint.getDirection() == UsbConstants.USB_DIR_OUT)) {
-                outEndpoint = tmpEndpoint;
-            } else if ((inEndpoint == null)
+            if ((inEndpoint == null)
                     && (tmpEndpoint.getDirection() == UsbConstants.USB_DIR_IN)) {
                 inEndpoint = tmpEndpoint;
             }
@@ -89,35 +233,108 @@ public class MainActivity extends AppCompatActivity {
             Log.w(TAG, "inEndpoint is null");
         }
 
-        UsbDeviceConnection mConnection = mUsbManager.openDevice(mUsbDevice);
-        if (mConnection == null){
+        REPORT_SIZE = inEndpoint.getMaxPacketSize();
+
+        connection = manager.openDevice(device);
+        if (connection == null){
             Log.w(TAG, "mConnection is null");
             return;
         }
 
-        mConnection.claimInterface (mUsbInterface, true);
+        connection.claimInterface (usbIntr, true);
+        request = new UsbRequest();
+        request.initialize(connection, inEndpoint);
 
-        byte[] bytes = { 0 };
-        int TIMEOUT = 0;
-
-        final int receive_RequestType = (1 << 7) | (1 << 5) | (0); //USBRQ_DIR_DEVICE_TO_HOST USBRQ_TYPE_CLASS USBRQ_RCPT_DEVICE
-
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                byte[] bytes = { 0 };
-                int a = mConnection.controlTransfer(receive_RequestType, 0x01, 0, 0, bytes, 1, 0);
-                if (a > 0) {
-                    Log.i(TAG, "SOME RES " + (bytes[0] & 0xFF));
-                }
-            }
-        }, 20);
+//        byte[] res = get();
+        byte[] data = new byte[19];
+        int size = Math.min(data.length, inEndpoint.getMaxPacketSize());
+//        int result = mConnection.controlTransfer(
+//                UsbConstants.USB_DIR_IN,
+//                );
+////        int result = mConnection.bulkTransfer(inEndpoint, data, size, 300);
+//
+//        Log.w(TAG, "REPORT : " + result);
     }
 
-    @Override
-    public void onDestroy() {
-        handler.removeCallbacksAndMessages(null);
-        super.onDestroy();
+    void setup(){
+//        Log.d(TAG, "interf count " + device.getInterfaceCount());
+        setInterface();
+        if(usbIntr == null) {
+            Log.w(TAG, "mUsbInterface is null");
+            return;
+        }
+
+        Log.w(TAG, "intr  " + usbIntr);
+        inEndpoint = null;
+
+        // Получаем endpoint’ы
+        // 128 - USB_DIR_IN - device to host
+        for (int nEp = 0; nEp < usbIntr.getEndpointCount(); nEp++) {
+            UsbEndpoint tmpEndpoint = usbIntr.getEndpoint(nEp);
+//            Log.d(TAG, "tmpEndpoint type " + tmpEndpoint.getType());
+//            Log.d(TAG, "tmpEndpoint direction " + tmpEndpoint.getDirection());
+
+//            if (tmpEndpoint.getType() != UsbConstants.USB_ENDPOINT_XFER_BULK)
+//                continue;
+
+            if ((inEndpoint == null)
+                    && (tmpEndpoint.getDirection() == UsbConstants.USB_DIR_IN)) {
+                inEndpoint = tmpEndpoint;
+            }
+        }
+
+        if(inEndpoint == null) {
+            Log.w(TAG, "inEndpoint is null");
+        }
+
+        REPORT_SIZE = inEndpoint.getMaxPacketSize();
+        Log.d(TAG, "REPORT_SIZE: " + String.valueOf(REPORT_SIZE));
+
+        connection = manager.openDevice(device);
+        if (connection == null){
+            Log.w(TAG, "mConnection is null");
+            return;
+        }
+
+        connection.claimInterface (usbIntr, true);
+        request = new UsbRequest();
+        request.initialize(connection, inEndpoint);
+
+//        byte[] res = get();
+        byte[] data = new byte[0];
+        Log.w(TAG, "data : " + Arrays.toString(data));
+
+        int size = Math.min(data.length, inEndpoint.getMaxPacketSize());
+//        int result = connection.controlTransfer(
+//                UsbConstants.USB_DIR_IN,
+//                1,
+//                0,
+//                0,
+//                data,
+//                inEndpoint.getMaxPacketSize(),
+//                400
+//                );
+        int result = connection.bulkTransfer(inEndpoint, data, size, 300);
+
+
+        Log.w(TAG, "REPORT : " + result);
+        Log.w(TAG, "res : " + Arrays.toString(data));
+    }
+
+    byte[] get(){
+        Log.w(TAG, "GET");
+        ByteBuffer buffer = ByteBuffer.allocate(REPORT_SIZE);
+        byte[] report = new byte[buffer.remaining()];
+
+        if (request.queue(buffer)) {
+            Log.w(TAG, "1");
+            connection.requestWait();
+            Log.w(TAG, "2");
+            buffer.rewind();
+            buffer.get(report, 0, report.length);
+            buffer.clear();
+        }
+        return report;
     }
 
     /*
@@ -125,30 +342,65 @@ public class MainActivity extends AppCompatActivity {
         у нас класс девайса = 239, но он имеет несколько интерфейсов, один из которых с id = 0 и
         классом = 14 и есть камера
      */
-    UsbDevice findDevice() {
+    void setDevice() {
         if(devices.isEmpty()){
-            Log.d(TAG, "devices is empty");
-            return null;
+            Log.w(TAG, "devices is empty");
+            return;
         }
 
         for (UsbDevice usbDevice: devices.values()) {
-            if (usbDevice.getDeviceClass() == UsbConstants.USB_CLASS_VIDEO) {
-                return usbDevice;
-            } else {
-                UsbInterface usbInterface = findInterface(usbDevice);
-                if (usbInterface != null) return usbDevice;
+            if (usbDevice.getDeviceClass() == UsbConstants.USB_CLASS_MISC) {
+                device = usbDevice;
             }
+//            else {
+//                UsbInterface usbInterface = setInterface(usbDevice);
+//                if (usbInterface != null) return usbDevice;
+//            }
         }
-        return null;
     }
 
-    UsbInterface findInterface(UsbDevice usbDevice) {
-        for (int nIf = 0; nIf < usbDevice.getInterfaceCount(); nIf++) {
-            UsbInterface usbInterface = usbDevice.getInterface(nIf);
-            if (usbInterface.getInterfaceClass() == UsbConstants.USB_CLASS_VIDEO) {
-                return usbInterface;
+    void setInterface() {
+        if(device == null) {
+            Log.w(TAG, "device is null");
+            return;
+        }
+        for (int nIf = 0; nIf < device.getInterfaceCount(); nIf++) {
+            UsbInterface tmp = device.getInterface(nIf);
+            if (tmp.getInterfaceClass() == UsbConstants.USB_CLASS_VIDEO
+                    && tmp.getAlternateSetting() == 0
+            ) {
+                usbIntr = tmp;
+                return;
             }
         }
-        return null;
+    }
+
+    @Override
+    protected void onStart() {
+//        mUsbManager.requestPermission(mUsbDevice, permissionIntent);
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_DENIED) {
+            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA}, MY_CAMERA_REQUEST_CODE);
+        }
+        super.onStart();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == MY_CAMERA_REQUEST_CODE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "camera permission granted ");
+            } else {
+                Log.d(TAG, "camera permission denied ");
+            }
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        handler.removeCallbacksAndMessages(null);
+        request.close();
+        super.onDestroy();
     }
 }

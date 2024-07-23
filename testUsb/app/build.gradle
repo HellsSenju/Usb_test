@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.testusb"
-        minSdk 24
+        minSdk 33
         targetSdk 34
         versionCode 1
         versionName "1.0"
@@ -29,7 +29,13 @@ android {
 }
 
 dependencies {
-
+    implementation libs.play.services.location
+    implementation libs.usb4java.javax
+    implementation libs.usbserial
+    implementation libs.usb.serial.for.android
+    implementation libs.dexter
+    implementation libs.rxandroid
+    implementation libs.rxjava
     implementation libs.appcompat
     implementation libs.material
     implementation libs.activity
