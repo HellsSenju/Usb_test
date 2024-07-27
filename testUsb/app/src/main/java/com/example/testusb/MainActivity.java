@@ -1,5 +1,8 @@
 package com.example.testusb;
 
+import static android.hardware.usb.UsbConstants.USB_ENDPOINT_XFERTYPE_MASK;
+import static android.hardware.usb.UsbConstants.USB_ENDPOINT_XFER_INT;
+
 import android.Manifest;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -15,12 +18,14 @@ import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.hardware.usb.UsbRequest;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -56,17 +61,17 @@ public class MainActivity extends AppCompatActivity {
     private UsbManager manager;
 
     private UsbAccessory accessory;
-    
+
     private UsbDevice device;
 
     private UsbSerialDevice serialPort;
-    
+
     private UsbInterface usbIntr;
-    
+
     private UsbEndpoint inEndpoint; //device to host
-    
+
     private UsbDeviceConnection connection;
-    
+
     private UsbRequest request = null;
 
     private HashMap<String, UsbDevice> devices;
@@ -105,7 +110,11 @@ public class MainActivity extends AppCompatActivity {
             }
 
             //                serialSetup();
-            setup();
+            try {
+                setup();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
 
 //                try {
 //                    test();
@@ -154,7 +163,10 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "accessoryList " + Arrays.toString(accessoryList));
 
         devices = manager.getDeviceList();
+
         Log.d(TAG, "devices " + devices.size());
+
+//        Log.d(TAG, String.valueOf(devices));
 
         permissionIntent = PendingIntent.getBroadcast(this, 0,
                 new Intent(ACTION_USB_PERMISSION), PendingIntent.FLAG_IMMUTABLE);
@@ -233,6 +245,7 @@ public class MainActivity extends AppCompatActivity {
             Log.w(TAG, "inEndpoint is null");
         }
 
+
         REPORT_SIZE = inEndpoint.getMaxPacketSize();
 
         connection = manager.openDevice(device);
@@ -256,55 +269,58 @@ public class MainActivity extends AppCompatActivity {
 //        Log.w(TAG, "REPORT : " + result);
     }
 
-    void setup(){
-//        Log.d(TAG, "interf count " + device.getInterfaceCount());
-        setInterface();
-        if(usbIntr == null) {
-            Log.w(TAG, "mUsbInterface is null");
-            return;
-        }
-
-        Log.w(TAG, "intr  " + usbIntr);
-        inEndpoint = null;
-
-        // Получаем endpoint’ы
-        // 128 - USB_DIR_IN - device to host
-        for (int nEp = 0; nEp < usbIntr.getEndpointCount(); nEp++) {
-            UsbEndpoint tmpEndpoint = usbIntr.getEndpoint(nEp);
-//            Log.d(TAG, "tmpEndpoint type " + tmpEndpoint.getType());
-//            Log.d(TAG, "tmpEndpoint direction " + tmpEndpoint.getDirection());
-
-//            if (tmpEndpoint.getType() != UsbConstants.USB_ENDPOINT_XFER_BULK)
-//                continue;
-
-            if ((inEndpoint == null)
-                    && (tmpEndpoint.getDirection() == UsbConstants.USB_DIR_IN)) {
-                inEndpoint = tmpEndpoint;
-            }
-        }
-
-        if(inEndpoint == null) {
-            Log.w(TAG, "inEndpoint is null");
-        }
-
-        REPORT_SIZE = inEndpoint.getMaxPacketSize();
-        Log.d(TAG, "REPORT_SIZE: " + String.valueOf(REPORT_SIZE));
+    void setup() throws InterruptedException {
 
         connection = manager.openDevice(device);
         if (connection == null){
             Log.w(TAG, "mConnection is null");
             return;
         }
+        openDevice();
 
-        connection.claimInterface (usbIntr, true);
-        request = new UsbRequest();
-        request.initialize(connection, inEndpoint);
+//        setInterface();
+//        if(usbIntr == null) {
+//            Log.w(TAG, "mUsbInterface is null");
+//            return;
+//        }
+//
+//        Log.w(TAG, "intr  " + usbIntr);
+//        inEndpoint = null;
+//
+//        // Получаем endpoint’ы
+//        // 128 - USB_DIR_IN - device to host
+//        for (int nEp = 0; nEp < usbIntr.getEndpointCount(); nEp++) {
+//            UsbEndpoint tmpEndpoint = usbIntr.getEndpoint(nEp);
+//
+//            if ((inEndpoint == null)
+//                    && (tmpEndpoint.getDirection() == UsbConstants.USB_DIR_IN)) {
+//                inEndpoint = tmpEndpoint;
+//            }
+//        }
+//
+//        if(inEndpoint == null) {
+//            Log.w(TAG, "inEndpoint is null");
+//        }
+//
+//        boolean r = inEndpoint.getType() == USB_ENDPOINT_XFERTYPE_MASK;
+//        Log.d(TAG, "inEndpoint type " + r);
+//
+//        REPORT_SIZE = inEndpoint.getMaxPacketSize();
+//        Log.d(TAG, "REPORT_SIZE: " + String.valueOf(REPORT_SIZE));
+//
+
+//
+//        connection.claimInterface (usbIntr, true);
+//        request = new UsbRequest();
+//        request.initialize(connection, inEndpoint);
+
+//        new Thread(new UsbCameraReader(connection, inEndpoint)).start();
 
 //        byte[] res = get();
-        byte[] data = new byte[0];
-        Log.w(TAG, "data : " + Arrays.toString(data));
+//        byte[] data;
+//        Log.w(TAG, "data : " + Arrays.toString(data));
 
-        int size = Math.min(data.length, inEndpoint.getMaxPacketSize());
+//        int size = Math.min(data.length, inEndpoint.getMaxPacketSize());
 //        int result = connection.controlTransfer(
 //                UsbConstants.USB_DIR_IN,
 //                1,
@@ -314,11 +330,42 @@ public class MainActivity extends AppCompatActivity {
 //                inEndpoint.getMaxPacketSize(),
 //                400
 //                );
-        int result = connection.bulkTransfer(inEndpoint, data, size, 300);
+//        int result = connection.bulkTransfer(inEndpoint, data, inEndpoint.getMaxPacketSize(), 0);
+//        Log.d(TAG, "res1 : " + result);
+//
+//
+//        Thread.sleep(10000);
+//        result = connection.bulkTransfer(inEndpoint, data, size, 0);
+//        Log.d(TAG, "res2 : " + result);
+//
+//
+//        Log.w(TAG, "REPORT : " + result);
+//        Log.w(TAG, "res : " + Arrays.toString(data));
+    }
+
+    private void openDevice() {
+        Log.d(TAG, "openDevice");
+
+//        Log.d(TAG, "getInterfaceCount " + device.getInterfaceCount());
+
+        for (int i = 0; i < device.getInterfaceCount(); i++) {
+
+            UsbInterface usbInterface = device.getInterface(i);
+
+//            Log.d(TAG, "getEndpointCount " + usbInterface.getEndpointCount());
+
+            for (int j = 0; j < usbInterface.getEndpointCount(); j++) {
+                UsbEndpoint endpoint = usbInterface.getEndpoint(j);
+                Log.d(TAG, "Type " + endpoint.getType());
 
 
-        Log.w(TAG, "REPORT : " + result);
-        Log.w(TAG, "res : " + Arrays.toString(data));
+                if (endpoint.getType() == USB_ENDPOINT_XFER_INT) {
+                    Log.d(TAG, "find");
+                    new Thread(new UsbCameraReader(connection, endpoint)).start();
+                }
+            }
+
+        }
     }
 
     byte[] get(){
@@ -349,7 +396,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         for (UsbDevice usbDevice: devices.values()) {
-            if (usbDevice.getDeviceClass() == UsbConstants.USB_CLASS_MISC) {
+            if (usbDevice.getDeviceClass()
+                    == 239
+//                    == 0
+            ) {
                 device = usbDevice;
             }
 //            else {
@@ -366,8 +416,10 @@ public class MainActivity extends AppCompatActivity {
         }
         for (int nIf = 0; nIf < device.getInterfaceCount(); nIf++) {
             UsbInterface tmp = device.getInterface(nIf);
-            if (tmp.getInterfaceClass() == UsbConstants.USB_CLASS_VIDEO
-                    && tmp.getAlternateSetting() == 0
+            if (tmp.getInterfaceClass()
+//                    == 3
+                    == 14
+//                    && tmp.getAlternateSetting() == 0
             ) {
                 usbIntr = tmp;
                 return;
@@ -375,9 +427,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @Override
     protected void onStart() {
 //        mUsbManager.requestPermission(mUsbDevice, permissionIntent);
+
         if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_DENIED) {
             ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA}, MY_CAMERA_REQUEST_CODE);
@@ -402,5 +456,44 @@ public class MainActivity extends AppCompatActivity {
         handler.removeCallbacksAndMessages(null);
         request.close();
         super.onDestroy();
+    }
+}
+
+class UsbCameraReader implements Runnable {
+    private UsbDeviceConnection connection;
+    private UsbEndpoint endpoint;
+
+    public static final String TAG = "!!!";
+
+    public UsbCameraReader(UsbDeviceConnection connection, UsbEndpoint endpoint) {
+        this.connection = connection;
+        this.endpoint = endpoint;
+    }
+
+    @Override
+    public void run() {
+        Log.d(TAG, "RUN");
+        ByteBuffer buffer = ByteBuffer.allocate(endpoint.getMaxPacketSize());
+
+        UsbRequest request = new UsbRequest();
+        request.initialize(connection, endpoint);
+
+        while (true) {
+            request.queue(buffer);
+
+            UsbRequest waited = connection.requestWait();
+
+            if (waited == request) {
+                Log.d(TAG, "Buffer : " + Arrays.toString(buffer.array()));
+                // Обработка данных изображения
+                processFrame(buffer.array());
+            }
+        }
+    }
+
+    private void processFrame(byte[] data) {
+        // Обработка и отображение данных изображения
+
+        Log.d(TAG, Arrays.toString(data));
     }
 }

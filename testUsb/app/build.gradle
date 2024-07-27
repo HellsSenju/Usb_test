@@ -29,6 +29,10 @@ android {
 }
 
 dependencies {
+//    implementation 'com.github.saki4510t:libcommon:Tag'
+//    implementation 'com.github.CosmicNoise:AndroidUVCCameraStudio:1.0'
+//    implementation 'com.github.saki4510t:UVCCamera:2.1.1'
+    implementation 'com.github.jiangdongguo.AndroidUSBCamera:libausbc:3.3.3'
     implementation libs.play.services.location
     implementation libs.usb4java.javax
     implementation libs.usbserial
