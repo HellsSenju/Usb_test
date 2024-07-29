@@ -1,24 +1,21 @@
-//package com.example.testusb;
-//
-//import android.os.Bundle;
-//import android.view.LayoutInflater;
-//import android.view.View;
-//import android.view.ViewGroup;
-//
-//import androidx.activity.EdgeToEdge;
-//import androidx.annotation.NonNull;
-//import androidx.annotation.Nullable;
-//import androidx.appcompat.app.AppCompatActivity;
-//import androidx.core.graphics.Insets;
-//import androidx.core.view.ViewCompat;
-//import androidx.core.view.WindowInsetsCompat;
-//
-//import com.jiangdg.ausbc.MultiCameraClient;
-//import com.jiangdg.ausbc.base.CameraActivity;
-//import com.jiangdg.ausbc.widget.IAspectRatio;
-//
-//public class Test implements CameraActivity {
-////    private var mViewBinding: FragmentUvcBinding? = null
+package com.example.testusb;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+
+public class Test  {
+//    private var mViewBinding: FragmentUvcBinding? = null
 //    private Activ
 //
 ////    @Override
@@ -56,7 +53,7 @@
 //    public void onPointerCaptureChanged(boolean hasCapture) {
 //        super.onPointerCaptureChanged(hasCapture);
 //    }
-//}
+}
 //
 //class DemoFragment: CameraFragment() {
 //    private var mViewBinding: FragmentUvcBinding? = null

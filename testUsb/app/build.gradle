@@ -34,6 +34,10 @@ dependencies {
 //    implementation 'com.github.saki4510t:UVCCamera:2.1.1'
     implementation 'com.github.jiangdongguo.AndroidUSBCamera:libausbc:3.3.3'
     implementation libs.play.services.location
+    implementation libs.camera.core
+    implementation libs.camera.camera2
+    implementation libs.camera.lifecycle
+    implementation libs.camera.view
     implementation libs.usb4java.javax
     implementation libs.usbserial
     implementation libs.usb.serial.for.android

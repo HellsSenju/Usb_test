@@ -16,6 +16,10 @@ usbSerialForAndroid = "3.8.0"
 uvccamera = "2.1.1"
 
 [libraries]
+camera-camera2 = { module = "androidx.camera:camera-camera2" }
+camera-core = { module = "androidx.camera:camera-core" }
+camera-lifecycle = { module = "androidx.camera:camera-lifecycle" }
+camera-view = { module = "androidx.camera:camera-view" }
 dexter = { module = "com.karumi:dexter", version.ref = "dexter" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
