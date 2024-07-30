@@ -1,104 +1,231 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/RelativeLayout1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".CaptureActivity">
-
+    android:background="#ff000000"
+    tools:context=".CaptureActivity"
+    tools:ignore="MergeRootFrame" >
 
     <TextView
-        android:id="@+id/resultTextView"
+        android:id="@+id/textView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:shadowColor="#000000"
-        android:shadowRadius="2"
-        android:text="Result:"
-        android:textColor="#FFFFFF"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
+        android:text="Touch screen to select camera"
+        android:textColor="#FFFF0000" />
 
     <LinearLayout
-        android:id="@+id/linearLayout2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@id/textView1"
+        android:layout_centerInParent="true"
         android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:baselineAligned="false" >
 
-        <com.serenegiant.widget.UVCCameraTextureView
-            android:id="@+id/camera_view"
-            android:layout_width="407dp"
-            android:layout_height="200dp"
-            android:layout_centerInParent="true"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+        <RelativeLayout
+            android:id="@+id/camera_layout_L"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1" >
 
-        <com.serenegiant.widget.UVCCameraTextureView
-            android:id="@+id/camera_view2"
-            android:layout_width="407dp"
-            android:layout_height="200dp"
-            android:layout_centerInParent="true"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            <com.serenegiant.widget.UVCCameraTextureView
+                android:id="@+id/camera_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true" />
 
+            <ImageView
+                android:id="@+id/frame_image_L"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/camera_view"
+                android:layout_alignLeft="@+id/camera_view"
+                android:layout_alignRight="@+id/camera_view"
+                android:layout_alignTop="@+id/camera_view"
+                android:src="@drawable/border" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/camera_layout_R"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1" >
+
+            <com.serenegiant.widget.UVCCameraTextureView
+                android:id="@+id/camera_view2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true" />
+
+            <ImageView
+                android:id="@+id/frame_image_R"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/camera_view2"
+                android:layout_alignLeft="@+id/camera_view2"
+                android:layout_alignRight="@+id/camera_view2"
+                android:layout_alignTop="@+id/camera_view2"
+                android:src="@drawable/border" />
+
+        </RelativeLayout>
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/linearLayout3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
-
-        <ImageButton
-            android:id="@+id/capture_button"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_centerHorizontal="true"
-            android:contentDescription="l"
-            android:layout_marginBottom="36dp"
-            android:background="@null"
-            android:scaleType="centerCrop"
-            android:src="@android:drawable/ic_menu_camera" />
-
-        <ImageButton
-            android:id="@+id/imageButton"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_marginBottom="16dp"
-            android:background="@mipmap/ic_transparent"
-            android:contentDescription="selector"
-            android:scaleType="fitCenter"
-            android:src="@drawable/btn_new_shutter"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <ImageButton
-            android:id="@+id/capture_button_2"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:contentDescription="r"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="36dp"
-            android:background="@null"
-            android:scaleType="centerCrop"
-            android:src="@android:drawable/ic_menu_camera" />
-    </LinearLayout>
+</RelativeLayout>
 
 
+<!--<?xml version="1.0" encoding="utf-8"?>-->
+<!--<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--    xmlns:tools="http://schemas.android.com/tools"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="match_parent"-->
+<!--    tools:context=".CaptureActivity">-->
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+
+<!--    <TextView-->
+<!--        android:id="@+id/resultTextView"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:shadowColor="#000000"-->
+<!--        android:shadowRadius="2"-->
+<!--        android:text="Result:"-->
+<!--        android:textColor="#FFFFFF"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintHorizontal_bias="0.0"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent" />-->
+
+
+<!--    <LinearLayout-->
+<!--        android:id="@+id/linearLayout2"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="vertical"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent">-->
+
+<!--        <RelativeLayout-->
+<!--            android:id="@+id/camera_layout"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:layout_weight="1" >-->
+
+
+<!--        <ImageView-->
+<!--            android:id="@+id/frame_image"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="152dp"-->
+<!--            android:layout_alignLeft="@+id/camera_view"-->
+<!--            android:layout_alignTop="@+id/camera_view"-->
+<!--            android:layout_alignRight="@+id/camera_view"-->
+<!--            android:layout_alignBottom="@+id/camera_view"-->
+<!--            android:src="@drawable/border" />-->
+
+
+
+<!--        <com.serenegiant.widget.UVCCameraTextureView-->
+<!--            android:id="@+id/camera_view"-->
+<!--            android:layout_width="407dp"-->
+<!--            android:layout_height="200dp"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintTop_toTopOf="parent" />-->
+
+
+<!--        </RelativeLayout>-->
+
+<!--        <RelativeLayout-->
+<!--            android:id="@+id/camera_layout2"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:layout_weight="1" >-->
+
+<!--        <com.serenegiant.widget.UVCCameraTextureView-->
+<!--            android:id="@+id/camera_view2"-->
+<!--            android:layout_width="407dp"-->
+<!--            android:layout_height="200dp"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintTop_toTopOf="parent" />-->
+
+
+<!--            <com.serenegiant.widget.UVCCameraTextureView-->
+<!--                android:id="@+id/camera_view2"-->
+<!--                android:layout_width="407dp"-->
+<!--                android:layout_height="200dp"-->
+<!--                app:layout_constraintBottom_toBottomOf="parent"-->
+<!--                app:layout_constraintEnd_toEndOf="parent"-->
+<!--                app:layout_constraintStart_toStartOf="parent"-->
+<!--                app:layout_constraintTop_toTopOf="parent" />-->
+
+<!--        <ImageView-->
+<!--            android:id="@+id/frame_image2"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_alignBottom="@+id/camera_view2"-->
+<!--            android:layout_alignLeft="@+id/camera_view2"-->
+<!--            android:layout_alignRight="@+id/camera_view2"-->
+<!--            android:layout_alignTop="@+id/camera_view2"-->
+<!--            android:src="@drawable/border" />-->
+
+<!--        </RelativeLayout>-->
+
+<!--    </LinearLayout>-->
+
+<!--    <LinearLayout-->
+<!--        android:id="@+id/linearLayout3"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/linearLayout2">-->
+
+<!--        <ImageButton-->
+<!--            android:id="@+id/capture_button"-->
+<!--            android:layout_width="50dp"-->
+<!--            android:layout_height="50dp"-->
+<!--            android:layout_centerHorizontal="true"-->
+<!--            android:contentDescription="l"-->
+<!--            android:layout_marginBottom="36dp"-->
+<!--            android:background="@null"-->
+<!--            android:scaleType="centerCrop"-->
+<!--            android:src="@android:drawable/ic_menu_camera" />-->
+
+<!--        <ImageButton-->
+<!--            android:id="@+id/imageButton"-->
+<!--            android:layout_width="50dp"-->
+<!--            android:layout_height="50dp"-->
+<!--            android:layout_marginBottom="16dp"-->
+<!--            android:background="@mipmap/ic_transparent"-->
+<!--            android:contentDescription="selector"-->
+<!--            android:scaleType="fitCenter"-->
+<!--            android:src="@drawable/btn_new_shutter"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent" />-->
+
+<!--        <ImageButton-->
+<!--            android:id="@+id/capture_button_2"-->
+<!--            android:layout_width="50dp"-->
+<!--            android:layout_height="50dp"-->
+<!--            android:contentDescription="r"-->
+<!--            android:layout_centerHorizontal="true"-->
+<!--            android:layout_marginBottom="36dp"-->
+<!--            android:background="@null"-->
+<!--            android:scaleType="centerCrop"-->
+<!--            android:src="@android:drawable/ic_menu_camera" />-->
+<!--    </LinearLayout>-->
+
+
+
+<!--</androidx.constraintlayout.widget.ConstraintLayout>-->

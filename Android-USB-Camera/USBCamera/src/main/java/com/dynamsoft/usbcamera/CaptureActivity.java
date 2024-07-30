@@ -1,13 +1,11 @@
 package com.dynamsoft.usbcamera;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
+import android.graphics.YuvImage;
 import android.hardware.usb.UsbDevice;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,28 +13,22 @@ import android.view.Surface;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.dynamsoft.dbr.BarcodeReader;
 import com.serenegiant.common.BaseActivity;
 import com.serenegiant.usb.CameraDialog;
 import com.serenegiant.usb.IFrameCallback;
 import com.serenegiant.usb.USBMonitor;
-import com.serenegiant.usb.USBMonitor.UsbControlBlock;
 import com.serenegiant.usb.UVCCamera;
 import com.serenegiant.usbcameracommon.UVCCameraHandler;
 import com.serenegiant.widget.CameraViewInterface;
 import com.serenegiant.widget.UVCCameraTextureView;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class CaptureActivity extends BaseActivity implements CameraDialog.CameraDialogParent {
 
@@ -45,13 +37,6 @@ public class CaptureActivity extends BaseActivity implements CameraDialog.Camera
 
     private List<UsbDevice> devices = null;
 
-    private boolean one = false;
-
-    private boolean two = false;
-
-    /**
-     * lock
-     */
     private final Object mSync = new Object();
 
     /**
@@ -62,56 +47,28 @@ public class CaptureActivity extends BaseActivity implements CameraDialog.Camera
      */
     private static final boolean USE_SURFACE_ENCODER = false;
 
-    /**
-     * preview resolution(width)
-     * if your camera does not support specific resolution and mode,
-     * {@link UVCCamera#setPreviewSize(int, int, int)} throw exception
-     */
-//    private static final int PREVIEW_WIDTH = 640; // 640
     private static final int PREVIEW_WIDTH = 1920;
-    /**
-     * preview resolution(height)
-     * if your camera does not support specific resolution and mode,
-     * {@link UVCCamera#setPreviewSize(int, int, int)} throw exception
-     */
-//    private static final int PREVIEW_HEIGHT = 480; //480
+
     private static final int PREVIEW_HEIGHT = 1080;
+
     /**
      * preview mode
-     * if your camera does not support specific resolution and mode,
-     * {@link UVCCamera#setPreviewSize(int, int, int)} throw exception
      * 0:YUYV, other:MJPEG
      */
     private static final int PREVIEW_MODE = 1; // YUV
 
-    /**
-     * for accessing USB
-     */
     private USBMonitor mUSBMonitor;
 
-//    private USBMonitor mUSBMonitor2;
-    /**
-     * Handler to execute camera related methods sequentially on private thread
-     */
-    private UVCCameraHandler mCameraHandler;
-    private UVCCameraHandler mCameraHandler2;
-    /**
-     * for camera preview display
-     */
-    private CameraViewInterface mUVCCameraView;
-    private CameraViewInterface mUVCCameraView2;
-    /**
-     * for open&start / stop&close camera preview
-     */
-    private ImageButton mCameraButton;
-    private ImageButton captureButton;
-    private ImageButton captureButton2;
+    private UVCCameraHandler mCameraHandler, mCameraHandler2;
 
-    private TextView resultTextView;
+    private CameraViewInterface mUVCCameraView, mUVCCameraView2;
 
-    private ImageView canvasImageView;
+//    private SimpleUVCCameraTextureView view;
 
-    private Timer timer = null;
+    private UVCCamera camera;
+
+    private ImageView imageView;
+
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -123,13 +80,7 @@ public class CaptureActivity extends BaseActivity implements CameraDialog.Camera
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         setContentView(R.layout.activity_capture);
-
-        mCameraButton = findViewById(R.id.imageButton);
-//        canvasImageView = findViewById(R.id.canvasImageView);
-//        canvasImageView.setAdjustViewBounds(true);
-//        canvasImageView.setScaleType(ImageView.ScaleType.CENTER);
-        resultTextView = findViewById(R.id.resultTextView);
-        mCameraButton.setOnClickListener(mOnClickListener);
+        imageView = (ImageView) findViewById(R.id.frame_image_L);
 
 
         //for first device
@@ -137,8 +88,6 @@ public class CaptureActivity extends BaseActivity implements CameraDialog.Camera
         mUVCCameraView.setAspectRatio(PREVIEW_WIDTH / (double)PREVIEW_HEIGHT);
         ((UVCCameraTextureView)mUVCCameraView).setOnClickListener(mOnClickListener);
 
-        captureButton = findViewById(R.id.capture_button);
-        captureButton.setOnClickListener(mOnClickListener);
         mCameraHandler = UVCCameraHandler.createHandler(this, mUVCCameraView,
                 USE_SURFACE_ENCODER ? 0 : 1, PREVIEW_WIDTH, PREVIEW_HEIGHT, PREVIEW_MODE);
 
@@ -147,8 +96,7 @@ public class CaptureActivity extends BaseActivity implements CameraDialog.Camera
         mUVCCameraView2.setAspectRatio(PREVIEW_WIDTH / (double)PREVIEW_HEIGHT);
         ((UVCCameraTextureView)mUVCCameraView2).setOnClickListener(mOnClickListener);
 
-        captureButton2 = findViewById(R.id.capture_button_2);
-        captureButton2.setOnClickListener(mOnClickListener);
+
         mCameraHandler2 = UVCCameraHandler.createHandler(this, mUVCCameraView2,
                 USE_SURFACE_ENCODER ? 0 : 1, PREVIEW_WIDTH, PREVIEW_HEIGHT, PREVIEW_MODE);
 
@@ -163,6 +111,9 @@ public class CaptureActivity extends BaseActivity implements CameraDialog.Camera
 
         mUSBMonitor.register();
         devices = mUSBMonitor.getDeviceList();
+
+        if(camera != null)
+            camera.startPreview();
 
         if (mUVCCameraView != null)
             mUVCCameraView.onResume();
@@ -183,6 +134,9 @@ public class CaptureActivity extends BaseActivity implements CameraDialog.Camera
         mCameraHandler2.close();
         if (mUVCCameraView2 != null)
             mUVCCameraView2.onPause();
+
+        if(camera != null)
+            camera.stopPreview();
 
         mUSBMonitor.unregister();
         super.onStop();
@@ -309,9 +263,9 @@ public class CaptureActivity extends BaseActivity implements CameraDialog.Camera
         @Override
         public void onAttach(final UsbDevice device) {
             Toast.makeText(CaptureActivity.this, "USB_DEVICE_ATTACHED", Toast.LENGTH_SHORT).show();
-            if (getIntent().getBooleanExtra(Intents.ScanOptions.MANUAL,false) == false){
-                startConnectedCamera(device.getDeviceName());
-            }
+//            if (getIntent().getBooleanExtra(Intents.ScanOptions.MANUAL,false) == false){
+//                startConnectedCamera(device.getDeviceName());
+//            }
         }
 
         @Override
@@ -320,23 +274,26 @@ public class CaptureActivity extends BaseActivity implements CameraDialog.Camera
 
             if (!mCameraHandler.isOpened()) {
                 Log.d(TAG, "1");
-                Log.d(TAG, "dev " + device.getDeviceName());
-                Log.d(TAG, "ctrlBlock " + ctrlBlock);
-                Log.d(TAG, "ctrlBlock.getDeviceName() " + ctrlBlock.getDeviceName());
                 mCameraHandler.open(ctrlBlock);
-                final SurfaceTexture st = mUVCCameraView.getSurfaceTexture();
-                mCameraHandler.startPreview(new Surface(st));
-            }
-            else if (!mCameraHandler2.isOpened()) {
-                Log.d(TAG, "2");
-                Log.d(TAG, "dev " + device.getDeviceName());
-                Log.d(TAG, "ctrlBlock " + ctrlBlock);
-                Log.d(TAG, "ctrlBlock.getDeviceName() " + ctrlBlock.getDeviceName());
 
-                mCameraHandler2.open(ctrlBlock);
-                final SurfaceTexture st = mUVCCameraView2.getSurfaceTexture();
-                mCameraHandler2.startPreview(new Surface(st));
+                final SurfaceTexture st = mUVCCameraView.getSurfaceTexture();
+                Surface s = new Surface(st);
+                mCameraHandler.setPreviewCallback(mIFrameCallback);
+                mCameraHandler.startPreview(s);
             }
+//            else if (!mCameraHandler2.isOpened()) {
+//                Log.d(TAG, "2");
+//
+//                mCameraHandler2.open(ctrlBlock);
+//
+//                final SurfaceTexture st = mUVCCameraView2.getSurfaceTexture();
+//
+//                Surface s = new Surface(st);
+//
+//                mCameraHandler2.setPreviewCallback(mIFrameCallback2);
+//                mCameraHandler2.startPreview(s);
+//
+//            }
 //            synchronized (mSync) {
 //                if (mCameraHandler != null && mCameraHandler2 != null) {
 //                    USBMonitor.UsbControlBlock ctrlBlock2 = null;
@@ -422,14 +379,34 @@ public class CaptureActivity extends BaseActivity implements CameraDialog.Camera
     private final IFrameCallback mIFrameCallback = new IFrameCallback() {
         @Override
         public void onFrame(final ByteBuffer frame) {
-            Log.i(TAG, String.valueOf(frame));
+            byte[] frameData = new byte[frame.remaining()];
+            frame.get(frameData);
+            processFrame(frameData);
         }
     };
+
+    private void processFrame(byte[] frameData) {
+        Bitmap bitmap = convertFrameToBitmap(frameData);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                imageView.setImageBitmap(bitmap);
+            }
+        });
+    }
+
+    private Bitmap convertFrameToBitmap(byte[] frameData) {
+        YuvImage yuvImage = new YuvImage(frameData, ImageFormat.NV21, PREVIEW_WIDTH, PREVIEW_HEIGHT, null);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        yuvImage.compressToJpeg(new Rect(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT), 100, out);
+        byte[] imageBytes = out.toByteArray();
+        return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+    }
 
     private final IFrameCallback mIFrameCallback2 = new IFrameCallback() {
         @Override
         public void onFrame(final ByteBuffer frame) {
-            Log.i(TAG, String.valueOf(frame));
+            Log.i(TAG, "2: " + Arrays.toString(frame.array()));
 
         }
     };
