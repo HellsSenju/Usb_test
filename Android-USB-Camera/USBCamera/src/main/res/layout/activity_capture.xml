@@ -54,22 +54,29 @@
             android:layout_height="match_parent"
             android:layout_weight="1" >
 
-            <com.serenegiant.widget.UVCCameraTextureView
-                android:id="@+id/camera_view2"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_centerHorizontal="true"
-                android:layout_centerVertical="true" />
+<!--            <com.serenegiant.widget.UVCCameraTextureView-->
+<!--                android:id="@+id/camera_view2"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:layout_centerHorizontal="true"-->
+<!--                android:layout_centerVertical="true" />-->
 
             <ImageView
                 android:id="@+id/frame_image_R"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignBottom="@+id/camera_view2"
-                android:layout_alignLeft="@+id/camera_view2"
-                android:layout_alignRight="@+id/camera_view2"
-                android:layout_alignTop="@+id/camera_view2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+
                 android:src="@drawable/border" />
+
+<!--            <ImageView-->
+<!--                android:id="@+id/frame_image_R"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_alignBottom="@+id/camera_view2"-->
+<!--                android:layout_alignLeft="@+id/camera_view2"-->
+<!--                android:layout_alignRight="@+id/camera_view2"-->
+<!--                android:layout_alignTop="@+id/camera_view2"-->
+<!--                android:src="@drawable/border" />-->
 
         </RelativeLayout>
     </LinearLayout>

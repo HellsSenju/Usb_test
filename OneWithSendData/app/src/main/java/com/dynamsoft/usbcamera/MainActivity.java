@@ -1,0 +1,27 @@
+package com.dynamsoft.usbcamera;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.CheckBox;
+
+public class MainActivity extends AppCompatActivity {
+    private CheckBox continuousCheckBox;
+    private CheckBox manualCheckBox;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        continuousCheckBox = findViewById(R.id.continuousCheckBox);
+        manualCheckBox = findViewById(R.id.manualCheckBox);
+        Button scanButton = findViewById(R.id.scanButton);
+
+        GetterActivity options = new GetterActivity();
+        Intent intent = new Intent(this, options.getCaptureActivity());
+        startActivity(intent);
+
+    }
+
+}
