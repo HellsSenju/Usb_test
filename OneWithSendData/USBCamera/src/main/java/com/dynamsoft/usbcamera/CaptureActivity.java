@@ -14,6 +14,7 @@ import android.view.Surface;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -33,7 +34,7 @@ import java.util.List;
 
 public class CaptureActivity extends BaseActivity implements CameraDialog.CameraDialogParent {
 
-    private static final boolean DEBUG = true;	// TODO set false on release
+    private static final boolean DEBUG = true;    // TODO set false on release
 
     private static final String TAG = "!!!";
 
@@ -42,7 +43,7 @@ public class CaptureActivity extends BaseActivity implements CameraDialog.Camera
     /**
      * set true if you want to record movie using MediaSurfaceEncoder
      * (writing frame data into Surface camera from MediaCodec
-     *  by almost same way as USBCameratest2)
+     * by almost same way as USBCameratest2)
      * set false if you want to record movie using MediaVideoEncoder
      */
     private static final boolean USE_SURFACE_ENCODER = false;
@@ -63,6 +64,7 @@ public class CaptureActivity extends BaseActivity implements CameraDialog.Camera
 
     private CameraViewInterface mUVCCameraView;
 
+    private Button sendButton;
 
 
     @Override
@@ -76,9 +78,12 @@ public class CaptureActivity extends BaseActivity implements CameraDialog.Camera
 
         setContentView(R.layout.activity_capture);
 
-        mUVCCameraView = (CameraViewInterface)findViewById(R.id.camera_view);
-        mUVCCameraView.setAspectRatio(PREVIEW_WIDTH / (double)PREVIEW_HEIGHT);
-        ((UVCCameraTextureView)mUVCCameraView).setOnClickListener(mOnClickListener);
+        sendButton = (Button) findViewById(R.id.send_button);
+        sendButton.setOnClickListener(sendButtonOnClick);
+
+        mUVCCameraView = (CameraViewInterface) findViewById(R.id.camera_view);
+        mUVCCameraView.setAspectRatio(PREVIEW_WIDTH / (double) PREVIEW_HEIGHT);
+        ((UVCCameraTextureView) mUVCCameraView).setOnClickListener(mOnClickListener);
 
         synchronized (mSync) {
             mUSBMonitor = new USBMonitor(this, mOnDeviceConnectListener);
@@ -90,7 +95,7 @@ public class CaptureActivity extends BaseActivity implements CameraDialog.Camera
     @Override
     protected void onStart() {
         super.onStart();
-        if(DEBUG) Log.i(TAG, "onStart");
+        if (DEBUG) Log.i(TAG, "onStart");
 
         synchronized (mSync) {
             mUSBMonitor.register();
@@ -102,7 +107,7 @@ public class CaptureActivity extends BaseActivity implements CameraDialog.Camera
 
     @Override
     protected void onStop() {
-        if(DEBUG) Log.i(TAG, "onStop");
+        if (DEBUG) Log.i(TAG, "onStop");
 
         synchronized (mSync) {
             mCameraHandler.close();
@@ -146,17 +151,24 @@ public class CaptureActivity extends BaseActivity implements CameraDialog.Camera
         }
     };
 
-    private void startConnectedCamera(){
-        if(mUSBMonitor.getDeviceList().isEmpty()){
+    private final View.OnClickListener sendButtonOnClick = new View.OnClickListener() {
+        @Override
+        public void onClick(final View view) {
+
+        }
+    };
+
+    private void startConnectedCamera() {
+        if (mUSBMonitor.getDeviceList().isEmpty()) {
             if (DEBUG) Log.v(TAG, "no device");
             return;
         }
-        try{
+        try {
             UsbDevice device = mUSBMonitor.getDeviceList().get(0);
-            if(!mUSBMonitor.hasPermission(device))
+            if (!mUSBMonitor.hasPermission(device))
                 mUSBMonitor.requestPermission(device);
 
-        } catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -193,11 +205,10 @@ public class CaptureActivity extends BaseActivity implements CameraDialog.Camera
                     queueEvent(new Runnable() {
                         @Override
                         public void run() {
-                            try{
+                            try {
                                 // maybe throw java.lang.IllegalStateException: already released
                                 mCameraHandler.setPreviewCallback(null); //zhf
-                            }
-                            catch(Exception e){
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                             mCameraHandler.close();
@@ -206,6 +217,7 @@ public class CaptureActivity extends BaseActivity implements CameraDialog.Camera
                 }
             }
         }
+
         @Override
         public void onDettach(final UsbDevice device) {
             Toast.makeText(CaptureActivity.this, "USB_DEVICE_DETACHED", Toast.LENGTH_SHORT).show();
@@ -217,24 +229,17 @@ public class CaptureActivity extends BaseActivity implements CameraDialog.Camera
     };
 
 
-    private boolean done = false;
-
     private final IFrameCallback mIFrameCallback = new IFrameCallback() {
         @Override
         public void onFrame(final ByteBuffer frame) {
-            if(!done) {
-                Log.d(TAG, "OnFrame");
-                done = true;
+            mCameraHandler.setPreviewCallback(null);
+            Log.d(TAG, "OnFrame");
 
+            byte[] data = new byte[frame.remaining()];
+            frame.get(data);
 
-                byte[] data = new byte[frame.remaining()];
-                frame.get(data);
-
-                String s = Base64.encodeToString(data, Base64.DEFAULT);
-
-
-                Log.d("???", s);
-            }
+            String s = Base64.encodeToString(data, Base64.DEFAULT);
+            ServerApi.sendImageToServer(s);
         }
     };
 
