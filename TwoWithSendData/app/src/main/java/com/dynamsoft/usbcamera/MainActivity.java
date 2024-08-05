@@ -12,9 +12,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        continuousCheckBox = findViewById(R.id.continuousCheckBox);
-        manualCheckBox = findViewById(R.id.manualCheckBox);
-        Button scanButton = findViewById(R.id.scanButton);
 
         GetterActivity options = new GetterActivity();
         Intent intent = new Intent(this, options.getCaptureActivity());

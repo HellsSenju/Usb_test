@@ -1,0 +1,7 @@
+include ':USBCamera'
+include ':app'
+rootProject.name = "USBCamera"
+
+// gradle plugin version 4.1.3
+// gradle version 6.5
+// gradle jdk 1.8
